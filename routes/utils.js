@@ -14,7 +14,8 @@ module.exports.sendValidationErrorResponse = function(req, res, status, message,
         err = undefined;
     }
 
-    res.status(status).json(message);
+    // console.log(JSON.stringify(message));
+    res.status(status).json(message[0]);
 }
 
 
