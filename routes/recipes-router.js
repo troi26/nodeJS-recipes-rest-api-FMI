@@ -1,5 +1,6 @@
 const express = require('express');
 const sendErrorResponse = require('./utils').sendErrorResponse;
+const sendValidationErrorResponse = require('./utils').sendValidationErrorResponse;
 const replaceId = require('./utils').replaceId;
 const indicative = require('indicative');
 const util = require('util');
@@ -32,7 +33,6 @@ router.post('/', function (req, res) {
         shortDescription: 'string|max:256',
         cookingTime: 'required|integer',
         photoPath: 'string',
-        cookingTime: 'integer',
         detailedDescription: 'max:2048',
     }).then(() => {
         recipe.createdAt = new Date();
@@ -42,7 +42,7 @@ router.post('/', function (req, res) {
                 delete  recipe._id;
                 recipe.id = r.insertedId;
                 console.log(`Created recipe: ${recipe}`);
-                res.status(201).location(`/recipes/${recipe.id}`).json(recipe);
+                res.status(201).location(`/api/recipes/${recipe.id}`).json(recipe);
             } else {
                 sendErrorResponse(req, res, 500, `Server error: ${err.message}`, err);
             }
@@ -51,7 +51,7 @@ router.post('/', function (req, res) {
             sendErrorResponse(req, res, 500, `Server error: ${err.message}`, err);
         });
     }).catch(errors => {
-        sendErrorResponse(req, res, 400, `Invalid recipe data: ${util.inspect(errors)}`);
+        sendValidationErrorResponse(req, res, 400, errors);
     });
 })
 
@@ -84,7 +84,7 @@ router.put('/:id', (req, res) => {
             }
         })
     }).catch(errors => {
-        sendErrorResponse(req, res, 400, `Invalid recipe data: ${util.inspect(errors)}`);
+        sendValidationErrorResponse(req, res, 400, errors);(req, res, 400, errors);
     });
 });
 
