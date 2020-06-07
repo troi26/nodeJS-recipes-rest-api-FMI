@@ -1,0 +1,35 @@
+{
+  "name": "nodejs-recipes-rest-api",
+  "version": "1.0.0",
+  "description": "REST API server for recipes CRUD functionality.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon -w ./ ./server.js localhost 8080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/troi26/nodeJS-recipes-rest-api-FMI.git"
+  },
+  "keywords": [
+    "rest",
+    "nodejs",
+    "mongodb",
+    "recipes"
+  ],
+  "author": "Trayan Troev",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/troi26/nodeJS-recipes-rest-api-FMI/issues"
+  },
+  "homepage": "https://github.com/troi26/nodeJS-recipes-rest-api-FMI#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "indicative": "^7.4.4",
+    "mongodb": "^3.5.8"
+  },
+  "devDependencies": {
+    "livereload": "^0.9.1",
+    "nodemon": "^2.0.4"
+  }
+}
