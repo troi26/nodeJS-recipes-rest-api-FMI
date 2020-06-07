@@ -10,22 +10,31 @@ const router = express.Router();
 const collection = 'recipes';
 
 // recipes API Feature
-router.get('/', (req, res) => {
+router.get('/recipes', (req, res) => {
     req.app.locals.db.collection(collection).find().toArray().then(recipes => {
         res.json(recipes.map(r => replaceId(r)));
     });
 });
 
-router.get('/:id', (req, res) => {
-    req.app.locals.db.collection(collection).findOne(new ObjectID(req.params.id)).then(recipe => {
+router.get('/:userId/recipes', (req, res) => {
+    const authorId = req.params.userId;
+    req.app.locals.db.collection(collection).find({authorId}).toArray().then(recipes => {
+        res.json(recipes.map(r => replaceId(r)));
+    });
+});
+
+router.get('/:userId/recipes/:recipeId', (req, res) => {
+    const authorId = req.params.userId;
+    const recipeId = req.params.recipeId;
+    req.app.locals.db.collection(collection).findOne({_id: new ObjectID(recipeId), authorId}).then(recipe => {
         if (!recipe) {
-            sendErrorResponse(req, res, 404, `Recipe with ID=${req.params.id} does not exist`);
+            sendErrorResponse(req, res, 404, `Recipe with ID=${recipeId} of user with ID=${authorId} does not exist`);
         }
         res.json(recipe);
     });
 });
 
-router.post('/', function (req, res) {
+router.post('/:userId/recipes', function (req, res) {
     const recipe = req.body;
     indicative.validator.validate(recipe, {
         authorId: 'required|string|min:24|max:24',
@@ -35,6 +44,8 @@ router.post('/', function (req, res) {
         photoPath: 'string',
         detailedDescription: 'max:2048',
     }).then(() => {
+        const authorId = req.params.userId;
+        recipe.authorId = authorId;
         recipe.createdAt = new Date();
         recipe.modifiedAt = new Date();
         req.app.locals.db.collection(collection).insertOne(recipe).then(r => {
@@ -55,8 +66,8 @@ router.post('/', function (req, res) {
     });
 })
 
-router.put('/:id', (req, res) => {
-    const recipeId = req.params.id;
+router.put('/:userId/recipes/:recipeId', (req, res) => {
+    const recipeId = req.params.recipeId;
     const recipe = req.body;
     if (recipeId !== recipe.id) {
         sendErrorResponse(req, res, 404, `Recipe with ID=${recipe.id} does not match the request\`s ID=${recipeId}`);
@@ -71,9 +82,10 @@ router.put('/:id', (req, res) => {
     }).then((recipe) => {
         const db = req.app.locals.db;
         const objectID = new ObjectID(recipeId);
-        db.collection(collection).findOne({_id: objectID}).then((r) => {
+        const authorId = req.params.userId;
+        db.collection(collection).findOne({_id: objectID, authorId}).then((r) => {
             if (!r) {
-                sendErrorResponse(req, res, 404, `Recipe with ID=${recipeId} does not exist`);
+                sendErrorResponse(req, res, 404, `Recipe with ID=${recipeId} of user with ID=${authorId} does not exist`);
             } else {
                 recipe.createdAt = r.createdAt;
                 recipe.modifiedAt = new Date();
@@ -88,12 +100,13 @@ router.put('/:id', (req, res) => {
     });
 });
 
-router.delete('/:id', (req, res) => {
-    req.app.locals.db.collection(collection).findOne(new ObjectID(req.params.id)).then(recipe => {
+router.delete('/:userId/recipes/:recipeId', (req, res) => {
+    const authorId = req.params.userId;
+    req.app.locals.db.collection(collection).findOne({_id: new ObjectID(req.params.recipeId), authorId}).then(recipe => {
         if (!recipe) {
-            sendErrorResponse(req, res, 404, `Recipe with ID=${req.params.id} does not exist`);
+            sendErrorResponse(req, res, 404, `Recipe with ID=${req.params.recipeId} of user with ID=${authorId} does not exist`);
         } else {
-            req.app.locals.db.collection(collection).deleteOne({_id: new ObjectID(req.params.id)}).then(old => {
+            req.app.locals.db.collection(collection).deleteOne({_id: new ObjectID(req.params.recipeId)}).then(old => {
                 console.log(`Deleted recipe: ${JSON.stringify(recipe)}`);
                 res.json(recipe);
             });

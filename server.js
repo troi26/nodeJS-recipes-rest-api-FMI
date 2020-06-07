@@ -11,8 +11,8 @@ const port = 8080;
 app.use(express.json({limit: '50mb'}));
 
 app
-    .use('/api/recipes', recipesRouter);
-    
+    .use('/api/users', recipesRouter)
+
 app.use(function (err, req, res, next) {
     console.error(err.stack)
     sendErrorResponse(req, res, 500, `Server error: ${err.message}`, err);
