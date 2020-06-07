@@ -3,7 +3,6 @@ const sendErrorResponse = require('./utils').sendErrorResponse;
 const sendValidationErrorResponse = require('./utils').sendValidationErrorResponse;
 const replaceId = require('./utils').replaceId;
 const indicative = require('indicative');
-const util = require('util');
 const ObjectID = require('mongodb').ObjectID;
 
 const router = express.Router();
@@ -29,8 +28,9 @@ router.get('/:userId/recipes/:recipeId', (req, res) => {
     req.app.locals.db.collection(collection).findOne({_id: new ObjectID(recipeId), authorId}).then(recipe => {
         if (!recipe) {
             sendErrorResponse(req, res, 404, `Recipe with ID=${recipeId} of user with ID=${authorId} does not exist`);
+        } else {
+            res.json(recipe);
         }
-        res.json(recipe);
     });
 });
 
@@ -53,7 +53,7 @@ router.post('/:userId/recipes', function (req, res) {
                 delete  recipe._id;
                 recipe.id = r.insertedId;
                 console.log(`Created recipe: ${recipe}`);
-                res.status(201).location(`/api/recipes/${recipe.id}`).json(recipe);
+                res.status(201).location(`/api/users/${authorId}/recipes/${recipe.id}`).json(recipe);
             } else {
                 sendErrorResponse(req, res, 500, `Server error: ${err.message}`, err);
             }
@@ -71,33 +71,34 @@ router.put('/:userId/recipes/:recipeId', (req, res) => {
     const recipe = req.body;
     if (recipeId !== recipe.id) {
         sendErrorResponse(req, res, 404, `Recipe with ID=${recipe.id} does not match the request\`s ID=${recipeId}`);
+    } else {
+        indicative.validator.validate(recipe, {
+            authorId: 'required|string|min:24|max:24',
+            name: 'required|string|max:80',
+            shortDescription: 'string|max:256',
+            cookingTime: 'required|integer',
+            photoPath: 'string',
+            detailedDescription: 'max:2048',
+        }).then((recipe) => {
+            const db = req.app.locals.db;
+            const objectID = new ObjectID(recipeId);
+            const authorId = req.params.userId;
+            db.collection(collection).findOne({_id: objectID, authorId}).then((r) => {
+                if (!r) {
+                    sendErrorResponse(req, res, 404, `Recipe with ID=${recipeId} of user with ID=${authorId} does not exist`);
+                } else {
+                    recipe.createdAt = r.createdAt;
+                    recipe.modifiedAt = new Date();
+                    const newvalues = { $set: recipe};
+                    db.collection(collection).updateOne({_id: objectID}, newvalues).then((r) => {
+                        res.status(200).json(recipe);
+                    });
+                }
+            })
+        }).catch(errors => {
+            sendValidationErrorResponse(req, res, 400, errors);(req, res, 400, errors);
+        });
     }
-    indicative.validator.validate(recipe, {
-        authorId: 'required|string|min:24|max:24',
-        name: 'required|string|max:80',
-        shortDescription: 'string|max:256',
-        cookingTime: 'required|integer',
-        photoPath: 'string',
-        detailedDescription: 'max:2048',
-    }).then((recipe) => {
-        const db = req.app.locals.db;
-        const objectID = new ObjectID(recipeId);
-        const authorId = req.params.userId;
-        db.collection(collection).findOne({_id: objectID, authorId}).then((r) => {
-            if (!r) {
-                sendErrorResponse(req, res, 404, `Recipe with ID=${recipeId} of user with ID=${authorId} does not exist`);
-            } else {
-                recipe.createdAt = r.createdAt;
-                recipe.modifiedAt = new Date();
-                const newvalues = { $set: recipe};
-                db.collection(collection).updateOne({_id: objectID}, newvalues).then((r) => {
-                    res.status(200).json(recipe);
-                });
-            }
-        })
-    }).catch(errors => {
-        sendValidationErrorResponse(req, res, 400, errors);(req, res, 400, errors);
-    });
 });
 
 router.delete('/:userId/recipes/:recipeId', (req, res) => {
