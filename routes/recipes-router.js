@@ -42,12 +42,16 @@ router.post('/:userId/recipes', function (req, res) {
         shortDescription: 'string|max:256',
         cookingTime: 'required|integer',
         photoPath: 'string',
+        products: 'array',
         detailedDescription: 'max:2048',
     }).then(() => {
         const authorId = req.params.userId;
         recipe.authorId = authorId;
         recipe.createdAt = new Date();
         recipe.modifiedAt = new Date();
+        if (!recipe.products) {
+            recipe.products = [];
+        }
         req.app.locals.db.collection(collection).insertOne(recipe).then(r => {
             if (r.result.ok && r.insertedCount === 1) {
                 delete  recipe._id;
@@ -78,11 +82,15 @@ router.put('/:userId/recipes/:recipeId', (req, res) => {
             shortDescription: 'string|max:256',
             cookingTime: 'required|integer',
             photoPath: 'string',
+            products: 'array',
             detailedDescription: 'max:2048',
         }).then((recipe) => {
             const db = req.app.locals.db;
             const objectID = new ObjectID(recipeId);
             const authorId = req.params.userId;
+            if (!recipe.products) {
+                recipe.products = [];
+            }
             db.collection(collection).findOne({_id: objectID, authorId}).then((r) => {
                 if (!r) {
                     sendErrorResponse(req, res, 404, `Recipe with ID=${recipeId} of user with ID=${authorId} does not exist`);
