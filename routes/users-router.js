@@ -37,6 +37,11 @@ router.post('/', function (req, res) {
         description: 'string|max:512',
         status: 'string',
     }).then(() => {
+        if (!user.avatarUrl || !user.avatarUrl.length) {
+            user.avatarUrl = gender === "MALE"
+                ? "https://spng.pngfind.com/pngs/s/521-5217216_male-icons-free-and-clipart-avatar-hd-png.png"
+                : "https://listimg.pinclipart.com/picdir/s/335-3356471_female-avatar-girls-avatar-clipart.png";
+        }
         user.createdAt = new Date();
         user.modifiedAt = new Date();
         req.app.locals.db.collection(collection).insertOne(user).then(r => {
@@ -78,6 +83,11 @@ router.put('/:userId', (req, res) => {
                 if (!u) {
                     sendErrorResponse(req, res, 404, `User with ID=${userId} does not exist`);
                 } else {
+                    if (!user.avatarUrl || !user.avatarUrl.length) {
+                        user.avatarUrl = user.gender === "MALE"
+                            ? "https://spng.pngfind.com/pngs/s/521-5217216_male-icons-free-and-clipart-avatar-hd-png.png"
+                            : "https://listimg.pinclipart.com/picdir/s/335-3356471_female-avatar-girls-avatar-clipart.png";
+                    }
                     user.createdAt = u.createdAt;
                     user.modifiedAt = new Date();
                     const newvalues = { $set: user};
