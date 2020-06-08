@@ -45,7 +45,8 @@ router.post('/', function (req, res) {
     const user = req.body;
     indicative.validator.validate(user, userValidationSchema).then(() => {
         if (!user.avatarUrl || !user.avatarUrl.length) {
-            user.avatarUrl = gender === "MALE"
+            console.log();
+            user.avatarUrl = user.gender === "MALE"
                 ? "https://spng.pngfind.com/pngs/s/521-5217216_male-icons-free-and-clipart-avatar-hd-png.png"
                 : "https://listimg.pinclipart.com/picdir/s/335-3356471_female-avatar-girls-avatar-clipart.png";
         }
