@@ -17,7 +17,7 @@ const userValidationSchema = {
         validations.string()
     ],
     gender: 'required|string|in:MALE,FEMALE',
-    role: 'required|string|in:ROLE_ADMIN,ROLE_ADMIN',
+    role: 'required|string|in:ROLE_ADMIN,ROLE_USER',
     avatarUrl: 'string',
     description: 'string|max:512',
     status: 'required|string|in:active,suspended,deactivated',
