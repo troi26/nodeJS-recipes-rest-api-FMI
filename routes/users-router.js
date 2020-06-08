@@ -31,11 +31,11 @@ router.post('/', function (req, res) {
     indicative.validator.validate(user, {
         username: 'required|string|max:15',
         password: 'required|string|min:8',
-        gender: 'required|string',
-        role: 'required|string',
+        gender: 'required|string|in:MALE,FEMALE',
+        role: 'required|string|in:ROLE_ADMIN,ROLE_ADMIN',
         avatarUrl: 'string',
         description: 'string|max:512',
-        status: 'string',
+        status: 'required|string|in:active,suspended,deactivated',
     }).then(() => {
         if (!user.avatarUrl || !user.avatarUrl.length) {
             user.avatarUrl = gender === "MALE"
@@ -71,11 +71,11 @@ router.put('/:userId', (req, res) => {
         indicative.validator.validate(user, {
             username: 'required|string|max:15',
             password: 'required|string|min:8',
-            gender: 'required|string',
-            role: 'required|string',
+            gender: 'required|string|in:MALE,FEMALE',
+            role: 'required|string|in:ROLE_ADMIN,ROLE_ADMIN',
             avatarUrl: 'string',
             description: 'string|max:512',
-            status: 'string',
+            status: 'required|string|in:active,suspended,deactivated',
         }).then((user) => {
             const db = req.app.locals.db;
             const objectID = new ObjectID(userId);
