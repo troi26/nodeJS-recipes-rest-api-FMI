@@ -4,9 +4,24 @@ const sendValidationErrorResponse = require('./utils').sendValidationErrorRespon
 const replaceId = require('./utils').replaceId;
 const indicative = require('indicative');
 const ObjectID = require('mongodb').ObjectID;
+const validations = require('indicative/validator').validations;
 
 const router = express.Router();
 const collection = 'users';
+
+const userValidationSchema = {
+    username: 'required|string|max:15',
+    password: [
+        validations.required(),
+        validations.regex(['^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,}$']),
+        validations.string()
+    ],
+    gender: 'required|string|in:MALE,FEMALE',
+    role: 'required|string|in:ROLE_ADMIN,ROLE_ADMIN',
+    avatarUrl: 'string',
+    description: 'string|max:512',
+    status: 'required|string|in:active,suspended,deactivated',
+};
 
 // users API Feature
 router.get('/', (req, res) => {
@@ -28,15 +43,7 @@ router.get('/:userId', (req, res) => {
 
 router.post('/', function (req, res) {
     const user = req.body;
-    indicative.validator.validate(user, {
-        username: 'required|string|max:15',
-        password: 'required|string|min:8',
-        gender: 'required|string|in:MALE,FEMALE',
-        role: 'required|string|in:ROLE_ADMIN,ROLE_ADMIN',
-        avatarUrl: 'string',
-        description: 'string|max:512',
-        status: 'required|string|in:active,suspended,deactivated',
-    }).then(() => {
+    indicative.validator.validate(user, userValidationSchema).then(() => {
         if (!user.avatarUrl || !user.avatarUrl.length) {
             user.avatarUrl = gender === "MALE"
                 ? "https://spng.pngfind.com/pngs/s/521-5217216_male-icons-free-and-clipart-avatar-hd-png.png"
@@ -68,15 +75,7 @@ router.put('/:userId', (req, res) => {
     if (userId !== user.id) {
         sendErrorResponse(req, res, 404, `User with ID=${user.id} does not match the request\`s ID=${userId}`);
     } else {
-        indicative.validator.validate(user, {
-            username: 'required|string|max:15',
-            password: 'required|string|min:8',
-            gender: 'required|string|in:MALE,FEMALE',
-            role: 'required|string|in:ROLE_ADMIN,ROLE_ADMIN',
-            avatarUrl: 'string',
-            description: 'string|max:512',
-            status: 'required|string|in:active,suspended,deactivated',
-        }).then((user) => {
+        indicative.validator.validate(user, userValidationSchema).then((user) => {
             const db = req.app.locals.db;
             const objectID = new ObjectID(userId);
             db.collection(collection).findOne({_id: objectID}).then((u) => {
