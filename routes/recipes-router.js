@@ -29,7 +29,7 @@ router.get('/:userId/recipes/:recipeId', (req, res) => {
         if (!recipe) {
             sendErrorResponse(req, res, 404, `Recipe with ID=${recipeId} of user with ID=${authorId} does not exist`);
         } else {
-            res.json(recipe);
+            res.json(replaceId(recipe));
         }
     });
 });

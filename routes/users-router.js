@@ -36,7 +36,7 @@ router.get('/:userId', (req, res) => {
         if (!user) {
             sendErrorResponse(req, res, 404, `User with ID=${userId} does not exist`);
         } else {
-            res.status(200).json(user);
+            res.status(200).json(replaceId(user));
         }
     });
 });
